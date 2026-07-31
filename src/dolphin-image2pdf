@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set -u
+
+show_error() {
+    kdialog --title "Image2PDF" --error "$1"
+}
+
+show_success() {
+    kdialog --title "Image2PDF" --passivepopup "$1" 5
+}
+
+if ! command -v img2pdf >/dev/null 2>&1; then
+    show_error "img2pdf was not found. Install the img2pdf package and try again."
+    exit 1
+fi
+
+mode=${1:-}
+if (($# > 0)); then
+    shift
+fi
+
+if (($# == 0)); then
+    exit 0
+fi
+
+for source in "$@"; do
+    if [[ ! -f "$source" || ! -r "$source" ]]; then
+        show_error "The selected file cannot be read:\n$source"
+        exit 1
+    fi
+done
+
+case "$mode" in
+    separate)
+        success=0
+        failed=0
+        skipped=0
+        error_message=""
+
+        for source in "$@"; do
+            target="${source%.*}.pdf"
+
+            if [[ -e "$target" ]]; then
+                ((skipped++))
+                error_message+="Skipped existing file: ${target}"$'\n'
+                continue
+            fi
+
+            target_dir=$(dirname -- "$target")
+            temporary=$(mktemp --tmpdir="$target_dir" ".dolphin-image2pdf.XXXXXX.pdf") || {
+                ((failed++))
+                error_message+="Could not create a temporary file for: ${target}"$'\n'
+                continue
+            }
+
+            if result=$(img2pdf "$source" -o "$temporary" 2>&1); then
+                if mv -- "$temporary" "$target"; then
+                    chmod 0644 "$target"
+                    ((success++))
+                else
+                    rm -f -- "$temporary"
+                    ((failed++))
+                    error_message+="Could not save: ${target}"$'\n'
+                fi
+            else
+                rm -f -- "$temporary"
+                ((failed++))
+                error_message+="${source}: ${result}"$'\n'
+            fi
+        done
+
+        if ((failed == 0 && skipped == 0)); then
+            show_success "Created ${success} PDF file(s)."
+        else
+            show_error "Created ${success} PDF file(s), skipped ${skipped}, failed ${failed}.\n\n${error_message}"
+        fi
+        ;;
+
+    combine)
+        first=$1
+        suggested="${first%.*}.pdf"
+        target=$(kdialog --getsavefilename "$suggested" "application/pdf")
+
+        [[ -z "$target" ]] && exit 0
+
+        if [[ "${target,,}" != *.pdf ]]; then
+            target="${target}.pdf"
+        fi
+
+        if [[ -e "$target" ]]; then
+            if ! kdialog --title "Image2PDF" --warningyesno \
+                "The file already exists:\n${target}\n\nOverwrite it?"; then
+                exit 0
+            fi
+        fi
+
+        target_dir=$(dirname -- "$target")
+        if [[ ! -d "$target_dir" ]]; then
+            show_error "The destination directory does not exist:\n${target_dir}"
+            exit 1
+        fi
+
+        temporary=$(mktemp --tmpdir="$target_dir" ".dolphin-image2pdf.XXXXXX.pdf") || {
+            show_error "Could not create a temporary file in:\n${target_dir}"
+            exit 1
+        }
+
+        if result=$(img2pdf "$@" -o "$temporary" 2>&1); then
+            if mv -f -- "$temporary" "$target"; then
+                chmod 0644 "$target"
+                show_success "Created a PDF containing $# image(s)."
+            else
+                rm -f -- "$temporary"
+                show_error "Could not save the PDF:\n${target}"
+                exit 1
+            fi
+        else
+            rm -f -- "$temporary"
+            show_error "The conversion failed:\n${result}"
+            exit 1
+        fi
+        ;;
+
+    *)
+        show_error "Unknown invocation mode."
+        exit 1
+        ;;
+esac

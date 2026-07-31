@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Service
+Name=Image2PDF
+Name[de]=Image2PDF
+MimeType=image/*;
+Actions=separate;combine;
+Icon=application-pdf
+X-KDE-Protocols=file
+X-KDE-MinNumberOfUrls=1
+
+[Desktop Action separate]
+Name=Convert Images to Separate PDFs
+Name[de]=Bilder in getrennte PDFs konvertieren
+Icon=application-pdf
+Exec="@EXEC_PATH@" separate %F
+
+[Desktop Action combine]
+Name=Combine Images into One PDF
+Name[de]=Bilder in einer PDF zusammenfassen
+Icon=application-pdf
+Exec="@EXEC_PATH@" combine %F

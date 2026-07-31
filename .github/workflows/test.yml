@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install --yes shellcheck
+
+      - name: Run ShellCheck
+        run: shellcheck install.sh uninstall.sh src/dolphin-image2pdf tests/verify.sh
+
+      - name: Run tests
+        run: ./tests/verify.sh
