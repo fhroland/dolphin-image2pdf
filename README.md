@@ -99,6 +99,6 @@ Bug reports and pull requests are welcome. Please include the Plasma, KDE Framew
 
 ## License
 
-Copyright © 2026 Roland Graf
+Copyright © 2026 fhroland
 
 Licensed under the GNU General Public License, version 3 or later. See [LICENSE](LICENSE).
