@@ -22,13 +22,33 @@ This project keeps the desktop entry deliberately small and moves all conversion
 - `kdialog`
 - [`img2pdf`](https://github.com/josch/img2pdf)
 
-On openSUSE Tumbleweed, install the converter with:
+Install the required packages for your distribution:
+
+### openSUSE Tumbleweed
 
 ```bash
-sudo zypper install img2pdf
+sudo zypper install img2pdf kdialog
 ```
 
-For other distributions, install `img2pdf` from the distribution package manager or follow the upstream installation instructions.
+### Debian, Ubuntu, Kubuntu and KDE neon
+
+```bash
+sudo apt install img2pdf kdialog
+```
+
+### Fedora KDE
+
+```bash
+sudo dnf install python3-img2pdf kdialog
+```
+
+### Arch Linux and Manjaro
+
+```bash
+sudo pacman -S img2pdf kdialog
+```
+
+`kdialog` is normally already installed with a complete KDE Plasma desktop.
 
 ## Installation
 
